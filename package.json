@@ -5,7 +5,8 @@
   "main": "/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "rm -rf node_modules/ && npm install && webpack --watch"
+    "relaunch": "rm -rf node_modules/ && npm install && webpack --watch",
+    "start": "webpack --watch"
   },
   "author": "",
   "license": "ISC",

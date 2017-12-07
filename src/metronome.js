@@ -1,23 +1,20 @@
 import React from 'react'
-import WAAClock from 'waaclock'
 
-class Sequencer extends React.Component {
+class Metronome extends React.Component {
   constructor (props) {
     super(props)
 
     this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
-    // this.clock = new WAAClock(this.audioContext)
 
     this.state = {
       tempo: 120.0,
       noteResolution: 0,
       isPlaying: false,
-      current16thNote: 0
+      current16thNote: 0,
+      gateLength: 0.05,
+      noteLength: 0.25,
+      nextNoteTime: 0.0
     }
-
-    this.nextNoteTime = 0.0
-    this.gateLength = 0.05
-    this.noteLength = 0.25
 
     this.lookahead = 0.1
     this.schedulerInterval = 25.0
@@ -38,10 +35,11 @@ class Sequencer extends React.Component {
     this.setState({ isPlaying: !this.state.isPlaying }, () => {
       if (this.state.isPlaying) {
         this.setState({ current16thNote: 0 }, () => {
-          this.nextNoteTime = this.audioContext.currentTime
+          this.setState({
+            nextNoteTime: this.audioContext.currentTime
+          }, this.scheduler)
           this.scheduler()
         })
-
       } else {
         window.clearTimeout(this.timerID)
       }
@@ -49,8 +47,8 @@ class Sequencer extends React.Component {
   }
 
   scheduler () {
-    while (this.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
-      this.scheduleNote(this.state.current16thNote, this.nextNoteTime)
+    while (this.state.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
+      this.scheduleNote(this.state.current16thNote, this.state.nextNoteTime)
       this.nextNote()
     }
 
@@ -74,15 +72,16 @@ class Sequencer extends React.Component {
     }
 
     osc.start(time)
-    osc.stop(time + this.gateLength)
+    osc.stop(time + this.state.gateLength)
   }
 
   nextNote () {
     var secondsPerBeat = 60.0 / this.state.tempo
+    let nextTime = this.state.nextNoteTime + (secondsPerBeat * this.state.noteLength)
 
-    this.nextNoteTime += this.noteLength * secondsPerBeat
     this.setState({
-      current16thNote: this.state.current16thNote + 1
+      nextNoteTime: nextTime,
+      current16thNote: (this.state.current16thNote + 1)
     }, () => {
       if (this.state.current16thNote === 16) {
         this.setState({ current16thNote: 0 })
@@ -93,7 +92,7 @@ class Sequencer extends React.Component {
   render () {
     return (
       <div>
-        Sequencer
+        Metronome
 
         <button type='button' onClick={this.play}>{this.updateStartStopText()}</button>
       </div>
@@ -101,7 +100,7 @@ class Sequencer extends React.Component {
   }
 }
 
-export default Sequencer
+export default Metronome
 
 // import WAAClock from 'waaclock'
 // // const WAAClock = require('waaclock')

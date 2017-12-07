@@ -953,9 +953,9 @@ var _react = __webpack_require__(2);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _sequencer = __webpack_require__(17);
+var _metronome = __webpack_require__(17);
 
-var _sequencer2 = _interopRequireDefault(_sequencer);
+var _metronome2 = _interopRequireDefault(_metronome);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -980,8 +980,10 @@ var App = function (_React$Component) {
       return _react2.default.createElement(
         'div',
         { className: 'yo' },
-        'yo yo yo sdf',
-        _react2.default.createElement(_sequencer2.default, null)
+        'yo yo yo sdfa ',
+        _react2.default.createElement('br', null),
+        'af',
+        _react2.default.createElement(_metronome2.default, null)
       );
     }
   }]);
@@ -1081,10 +1083,6 @@ var _react = __webpack_require__(2);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _waaclock = __webpack_require__(29);
-
-var _waaclock2 = _interopRequireDefault(_waaclock);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -1093,27 +1091,25 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Sequencer = function (_React$Component) {
-  _inherits(Sequencer, _React$Component);
+var Metronome = function (_React$Component) {
+  _inherits(Metronome, _React$Component);
 
-  function Sequencer(props) {
-    _classCallCheck(this, Sequencer);
+  function Metronome(props) {
+    _classCallCheck(this, Metronome);
 
-    var _this = _possibleConstructorReturn(this, (Sequencer.__proto__ || Object.getPrototypeOf(Sequencer)).call(this, props));
+    var _this = _possibleConstructorReturn(this, (Metronome.__proto__ || Object.getPrototypeOf(Metronome)).call(this, props));
 
     _this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    // this.clock = new WAAClock(this.audioContext)
 
     _this.state = {
       tempo: 120.0,
       noteResolution: 0,
       isPlaying: false,
-      current16thNote: 0
+      current16thNote: 0,
+      gateLength: 0.05,
+      noteLength: 0.25,
+      nextNoteTime: 0.0
     };
-
-    _this.nextNoteTime = 0.0;
-    _this.gateLength = 0.05;
-    _this.noteLength = 0.25;
 
     _this.lookahead = 0.1;
     _this.schedulerInterval = 25.0;
@@ -1127,7 +1123,7 @@ var Sequencer = function (_React$Component) {
     return _this;
   }
 
-  _createClass(Sequencer, [{
+  _createClass(Metronome, [{
     key: 'updateStartStopText',
     value: function updateStartStopText() {
       return this.state.isPlaying ? 'Stop' : 'Start';
@@ -1140,7 +1136,9 @@ var Sequencer = function (_React$Component) {
       this.setState({ isPlaying: !this.state.isPlaying }, function () {
         if (_this2.state.isPlaying) {
           _this2.setState({ current16thNote: 0 }, function () {
-            _this2.nextNoteTime = _this2.audioContext.currentTime;
+            _this2.setState({
+              nextNoteTime: _this2.audioContext.currentTime
+            }, _this2.scheduler);
             _this2.scheduler();
           });
         } else {
@@ -1151,8 +1149,8 @@ var Sequencer = function (_React$Component) {
   }, {
     key: 'scheduler',
     value: function scheduler() {
-      while (this.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
-        this.scheduleNote(this.state.current16thNote, this.nextNoteTime);
+      while (this.state.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
+        this.scheduleNote(this.state.current16thNote, this.state.nextNoteTime);
         this.nextNote();
       }
 
@@ -1177,7 +1175,7 @@ var Sequencer = function (_React$Component) {
       }
 
       osc.start(time);
-      osc.stop(time + this.gateLength);
+      osc.stop(time + this.state.gateLength);
     }
   }, {
     key: 'nextNote',
@@ -1185,9 +1183,10 @@ var Sequencer = function (_React$Component) {
       var _this3 = this;
 
       var secondsPerBeat = 60.0 / this.state.tempo;
+      var nextTime = this.state.nextNoteTime + secondsPerBeat * this.state.noteLength;
 
-      this.nextNoteTime += this.noteLength * secondsPerBeat;
       this.setState({
+        nextNoteTime: nextTime,
         current16thNote: this.state.current16thNote + 1
       }, function () {
         if (_this3.state.current16thNote === 16) {
@@ -1201,7 +1200,7 @@ var Sequencer = function (_React$Component) {
       return _react2.default.createElement(
         'div',
         null,
-        'Sequencer',
+        'Metronome',
         _react2.default.createElement(
           'button',
           { type: 'button', onClick: this.play },
@@ -1211,10 +1210,10 @@ var Sequencer = function (_React$Component) {
     }
   }]);
 
-  return Sequencer;
+  return Metronome;
 }(_react2.default.Component);
 
-exports.default = Sequencer;
+exports.default = Metronome;
 
 // import WAAClock from 'waaclock'
 // // const WAAClock = require('waaclock')
@@ -18560,256 +18559,6 @@ var U={Children:{map:function(a,b,e){if(null==a)return a;var c=[];T(a,c,null,b,e
 d=a.key,g=a.ref,k=a._owner;if(null!=b){void 0!==b.ref&&(g=b.ref,k=G.current);void 0!==b.key&&(d=""+b.key);if(a.type&&a.type.defaultProps)var f=a.type.defaultProps;for(h in b)H.call(b,h)&&!I.hasOwnProperty(h)&&(c[h]=void 0===b[h]&&void 0!==f?f[h]:b[h])}var h=arguments.length-2;if(1===h)c.children=e;else if(1<h){f=Array(h);for(var l=0;l<h;l++)f[l]=arguments[l+2];c.children=f}return{$$typeof:r,type:a.type,key:d,ref:g,props:c,_owner:k}},createFactory:function(a){var b=J.bind(null,a);b.type=a;return b},
 isValidElement:K,version:"16.2.0",__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentOwner:G,assign:m}},V=Object.freeze({default:U}),W=V&&U||V;module.exports=W["default"]?W["default"]:W;
 
-
-/***/ }),
-/* 29 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var WAAClock = __webpack_require__(30)
-
-module.exports = WAAClock
-if (typeof window !== 'undefined') window.WAAClock = WAAClock
-
-
-/***/ }),
-/* 30 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(process) {var isBrowser = (typeof window !== 'undefined')
-
-var CLOCK_DEFAULTS = {
-  toleranceLate: 0.10,
-  toleranceEarly: 0.001
-}
-
-// ==================== Event ==================== //
-var Event = function(clock, deadline, func) {
-  this.clock = clock
-  this.func = func
-  this._cleared = false // Flag used to clear an event inside callback
-
-  this.toleranceLate = clock.toleranceLate
-  this.toleranceEarly = clock.toleranceEarly
-  this._latestTime = null
-  this._earliestTime = null
-  this.deadline = null
-  this.repeatTime = null
-
-  this.schedule(deadline)
-}
-
-// Unschedules the event
-Event.prototype.clear = function() {
-  this.clock._removeEvent(this)
-  this._cleared = true
-  return this
-}
-
-// Sets the event to repeat every `time` seconds.
-Event.prototype.repeat = function(time) {
-  if (time === 0)
-    throw new Error('delay cannot be 0')
-  this.repeatTime = time
-  if (!this.clock._hasEvent(this))
-    this.schedule(this.deadline + this.repeatTime)
-  return this
-}
-
-// Sets the time tolerance of the event.
-// The event will be executed in the interval `[deadline - early, deadline + late]`
-// If the clock fails to execute the event in time, the event will be dropped.
-Event.prototype.tolerance = function(values) {
-  if (typeof values.late === 'number')
-    this.toleranceLate = values.late
-  if (typeof values.early === 'number')
-    this.toleranceEarly = values.early
-  this._refreshEarlyLateDates()
-  if (this.clock._hasEvent(this)) {
-    this.clock._removeEvent(this)
-    this.clock._insertEvent(this)
-  }
-  return this
-}
-
-// Returns true if the event is repeated, false otherwise
-Event.prototype.isRepeated = function() { return this.repeatTime !== null }
-
-// Schedules the event to be ran before `deadline`.
-// If the time is within the event tolerance, we handle the event immediately.
-// If the event was already scheduled at a different time, it is rescheduled.
-Event.prototype.schedule = function(deadline) {
-  this._cleared = false
-  this.deadline = deadline
-  this._refreshEarlyLateDates()
-
-  if (this.clock.context.currentTime >= this._earliestTime) {
-    this._execute()
-  
-  } else if (this.clock._hasEvent(this)) {
-    this.clock._removeEvent(this)
-    this.clock._insertEvent(this)
-  
-  } else this.clock._insertEvent(this)
-}
-
-Event.prototype.timeStretch = function(tRef, ratio) {
-  if (this.isRepeated())
-    this.repeatTime = this.repeatTime * ratio
-
-  var deadline = tRef + ratio * (this.deadline - tRef)
-  // If the deadline is too close or past, and the event has a repeat,
-  // we calculate the next repeat possible in the stretched space.
-  if (this.isRepeated()) {
-    while (this.clock.context.currentTime >= deadline - this.toleranceEarly)
-      deadline += this.repeatTime
-  }
-  this.schedule(deadline)
-}
-
-// Executes the event
-Event.prototype._execute = function() {
-  if (this.clock._started === false) return
-  this.clock._removeEvent(this)
-
-  if (this.clock.context.currentTime < this._latestTime)
-    this.func(this)
-  else {
-    if (this.onexpired) this.onexpired(this)
-    console.warn('event expired')
-  }
-  // In the case `schedule` is called inside `func`, we need to avoid
-  // overrwriting with yet another `schedule`.
-  if (!this.clock._hasEvent(this) && this.isRepeated() && !this._cleared)
-    this.schedule(this.deadline + this.repeatTime) 
-}
-
-// Updates cached times
-Event.prototype._refreshEarlyLateDates = function() {
-  this._latestTime = this.deadline + this.toleranceLate
-  this._earliestTime = this.deadline - this.toleranceEarly
-}
-
-// ==================== WAAClock ==================== //
-var WAAClock = module.exports = function(context, opts) {
-  var self = this
-  opts = opts || {}
-  this.tickMethod = opts.tickMethod || 'ScriptProcessorNode'
-  this.toleranceEarly = opts.toleranceEarly || CLOCK_DEFAULTS.toleranceEarly
-  this.toleranceLate = opts.toleranceLate || CLOCK_DEFAULTS.toleranceLate
-  this.context = context
-  this._events = []
-  this._started = false
-}
-
-// ---------- Public API ---------- //
-// Schedules `func` to run after `delay` seconds.
-WAAClock.prototype.setTimeout = function(func, delay) {
-  return this._createEvent(func, this._absTime(delay))
-}
-
-// Schedules `func` to run before `deadline`.
-WAAClock.prototype.callbackAtTime = function(func, deadline) {
-  return this._createEvent(func, deadline)
-}
-
-// Stretches `deadline` and `repeat` of all scheduled `events` by `ratio`, keeping
-// their relative distance to `tRef`. In fact this is equivalent to changing the tempo.
-WAAClock.prototype.timeStretch = function(tRef, events, ratio) {
-  events.forEach(function(event) { event.timeStretch(tRef, ratio) })
-  return events
-}
-
-// Removes all scheduled events and starts the clock 
-WAAClock.prototype.start = function() {
-  if (this._started === false) {
-    var self = this
-    this._started = true
-    this._events = []
-
-    if (this.tickMethod === 'ScriptProcessorNode') {
-      var bufferSize = 256
-      // We have to keep a reference to the node to avoid garbage collection
-      this._clockNode = this.context.createScriptProcessor(bufferSize, 1, 1)
-      this._clockNode.connect(this.context.destination)
-      this._clockNode.onaudioprocess = function () {
-        process.nextTick(function() { self._tick() })
-      }
-    } else if (this.tickMethod === 'manual') null // _tick is called manually
-
-    else throw new Error('invalid tickMethod ' + this.tickMethod)
-  }
-}
-
-// Stops the clock
-WAAClock.prototype.stop = function() {
-  if (this._started === true) {
-    this._started = false
-    this._clockNode.disconnect()
-  }  
-}
-
-// ---------- Private ---------- //
-
-// This function is ran periodically, and at each tick it executes
-// events for which `currentTime` is included in their tolerance interval.
-WAAClock.prototype._tick = function() {
-  var event = this._events.shift()
-
-  while(event && event._earliestTime <= this.context.currentTime) {
-    event._execute()
-    event = this._events.shift()
-  }
-
-  // Put back the last event
-  if(event) this._events.unshift(event)
-}
-
-// Creates an event and insert it to the list
-WAAClock.prototype._createEvent = function(func, deadline) {
-  return new Event(this, deadline, func)
-}
-
-// Inserts an event to the list
-WAAClock.prototype._insertEvent = function(event) {
-  this._events.splice(this._indexByTime(event._earliestTime), 0, event)
-}
-
-// Removes an event from the list
-WAAClock.prototype._removeEvent = function(event) {
-  var ind = this._events.indexOf(event)
-  if (ind !== -1) this._events.splice(ind, 1)
-}
-
-// Returns true if `event` is in queue, false otherwise
-WAAClock.prototype._hasEvent = function(event) {
- return this._events.indexOf(event) !== -1
-}
-
-// Returns the index of the first event whose deadline is >= to `deadline`
-WAAClock.prototype._indexByTime = function(deadline) {
-  // performs a binary search
-  var low = 0
-    , high = this._events.length
-    , mid
-  while (low < high) {
-    mid = Math.floor((low + high) / 2)
-    if (this._events[mid]._earliestTime < deadline)
-      low = mid + 1
-    else high = mid
-  }
-  return low
-}
-
-// Converts from relative time to absolute time
-WAAClock.prototype._absTime = function(relTime) {
-  return relTime + this.context.currentTime
-}
-
-// Converts from absolute time to relative time 
-WAAClock.prototype._relTime = function(absTime) {
-  return absTime - this.context.currentTime
-}
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ })
 /******/ ]);
