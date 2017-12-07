@@ -12,9 +12,9 @@ class Metronome extends React.Component {
       isPlaying: false,
       current16thNote: 0,
       gateLength: 0.05,
-      noteLength: 0.25,
-      nextNoteTime: 0.0
+      noteLength: 0.25
     }
+    this.nextNoteTime = 0.0
 
     this.lookahead = 0.1
     this.schedulerInterval = 25.0
@@ -35,9 +35,7 @@ class Metronome extends React.Component {
     this.setState({ isPlaying: !this.state.isPlaying }, () => {
       if (this.state.isPlaying) {
         this.setState({ current16thNote: 0 }, () => {
-          this.setState({
-            nextNoteTime: this.audioContext.currentTime
-          }, this.scheduler)
+          this.nextNoteTime = this.audioContext.currentTime
           this.scheduler()
         })
       } else {
@@ -47,8 +45,8 @@ class Metronome extends React.Component {
   }
 
   scheduler () {
-    while (this.state.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
-      this.scheduleNote(this.state.current16thNote, this.state.nextNoteTime)
+    while (this.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
+      this.scheduleNote(this.state.current16thNote, this.nextNoteTime)
       this.nextNote()
     }
 
@@ -77,10 +75,9 @@ class Metronome extends React.Component {
 
   nextNote () {
     var secondsPerBeat = 60.0 / this.state.tempo
-    let nextTime = this.state.nextNoteTime + (secondsPerBeat * this.state.noteLength)
+    this.nextNoteTime += secondsPerBeat * this.state.noteLength
 
     this.setState({
-      nextNoteTime: nextTime,
       current16thNote: (this.state.current16thNote + 1)
     }, () => {
       if (this.state.current16thNote === 16) {

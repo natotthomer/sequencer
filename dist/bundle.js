@@ -1107,9 +1107,9 @@ var Metronome = function (_React$Component) {
       isPlaying: false,
       current16thNote: 0,
       gateLength: 0.05,
-      noteLength: 0.25,
-      nextNoteTime: 0.0
+      noteLength: 0.25
     };
+    _this.nextNoteTime = 0.0;
 
     _this.lookahead = 0.1;
     _this.schedulerInterval = 25.0;
@@ -1136,9 +1136,7 @@ var Metronome = function (_React$Component) {
       this.setState({ isPlaying: !this.state.isPlaying }, function () {
         if (_this2.state.isPlaying) {
           _this2.setState({ current16thNote: 0 }, function () {
-            _this2.setState({
-              nextNoteTime: _this2.audioContext.currentTime
-            }, _this2.scheduler);
+            _this2.nextNoteTime = _this2.audioContext.currentTime;
             _this2.scheduler();
           });
         } else {
@@ -1149,8 +1147,8 @@ var Metronome = function (_React$Component) {
   }, {
     key: 'scheduler',
     value: function scheduler() {
-      while (this.state.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
-        this.scheduleNote(this.state.current16thNote, this.state.nextNoteTime);
+      while (this.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
+        this.scheduleNote(this.state.current16thNote, this.nextNoteTime);
         this.nextNote();
       }
 
@@ -1183,10 +1181,9 @@ var Metronome = function (_React$Component) {
       var _this3 = this;
 
       var secondsPerBeat = 60.0 / this.state.tempo;
-      var nextTime = this.state.nextNoteTime + secondsPerBeat * this.state.noteLength;
+      this.nextNoteTime += secondsPerBeat * this.state.noteLength;
 
       this.setState({
-        nextNoteTime: nextTime,
         current16thNote: this.state.current16thNote + 1
       }, function () {
         if (_this3.state.current16thNote === 16) {
