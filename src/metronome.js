@@ -1,4 +1,6 @@
 import React from 'react'
+import WAAClock from 'waaclock'
+
 import Input from './input/input'
 
 export default class Metronome extends React.Component {
@@ -6,17 +8,17 @@ export default class Metronome extends React.Component {
     super(props)
 
     this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    this.clock = new WAAClock(this.audioContext)
+    this.clock.start()
 
     this.state = {
-      tempo: 70.0,
-      noteResolution: 1,
+      tempo: 120.0,
+      noteResolution: 0,
       isPlaying: false,
       current16thNote: 0,
       gateLength: 0.05,
       noteLength: 0.25
     }
-
-    this.nextNoteTime = 0.0
 
     this.lookahead = 0.1
     this.schedulerInterval = 25.0
@@ -24,12 +26,11 @@ export default class Metronome extends React.Component {
 
     this.updateStartStopText = this.updateStartStopText.bind(this)
     this.play = this.play.bind(this)
-    this.scheduler = this.scheduler.bind(this)
     this.scheduleNote = this.scheduleNote.bind(this)
     this.nextNote = this.nextNote.bind(this)
     this.handleTempoChange = this.handleTempoChange.bind(this)
     this.handleNoteResolutionChange = this.handleNoteResolutionChange.bind(this)
-    // this.handleTempoChange = this.handleTempoChange
+    this.makeOsc = this.makeOsc.bind(this)
   }
 
   updateStartStopText () {
@@ -41,38 +42,38 @@ export default class Metronome extends React.Component {
   }
 
   handleNoteResolutionChange (e) {
-
     this.setState({ noteResolution: parseInt(e.target.value) })
   }
 
   play () {
-    this.setState({ isPlaying: !this.state.isPlaying }, () => {
-      if (this.state.isPlaying) {
-        this.setState({ current16thNote: 0 }, () => {
-          this.nextNoteTime = this.audioContext.currentTime
-          this.scheduler()
-        })
-      } else {
-        window.clearTimeout(this.timerID)
-      }
-    })
-  }
-
-  scheduler () {
-    while (this.nextNoteTime < this.audioContext.currentTime + this.lookahead) {
-      this.scheduleNote(this.state.current16thNote, this.nextNoteTime)
-      this.nextNote()
+    const isPlaying = !this.state.isPlaying
+    this.setState({ isPlaying })
+    if (isPlaying) {
+      var secondsPerBeat = 60.0 / this.state.tempo
+      console.log(secondsPerBeat);
+      this.event1 = this.clock.callbackAtTime(function () {
+        this.scheduleNote(this.state.current16thNote)
+        this.nextNote()
+      }.bind(this), 0).repeat(secondsPerBeat * this.state.noteLength)
+    } else {
+      this.clock.stop()
     }
-
-    this.timerID = window.setTimeout(this.scheduler, this.schedulerInterval)
   }
 
-  scheduleNote (beatNumber, time) {
+  componentDidUpdate (prevProps, prevState) {
+    if (this.event1 && prevState.tempo !== this.state.tempo) {
+      const tempoRatio = prevState.tempo / this.state.tempo
+      this.clock.timeStretch(this.audioContext.currentTime, [this.event1], tempoRatio)
+    }
+  }
+
+  makeOsc (beatNumber) {
     if ((this.state.noteResolution === 1) && (beatNumber % 2)) {
       return
     } else if ((this.state.noteResolution === 2) && (beatNumber % 4)) {
       return
     }
+
     const osc = this.audioContext.createOscillator()
     osc.connect(this.audioContext.destination)
     if (!(beatNumber % 16)) {
@@ -82,22 +83,25 @@ export default class Metronome extends React.Component {
     } else {
       osc.frequency.value = 880
     }
+    return osc
+  }
 
-    osc.start(time)
-    osc.stop(time + this.state.gateLength)
+  scheduleNote (beatNumber) {
+    let osc = this.makeOsc(beatNumber)
+    if (osc) {
+      osc.start(this.audioContext.currentTime)
+      osc.stop(this.audioContext.currentTime + this.state.gateLength)
+    }
   }
 
   nextNote () {
-    var secondsPerBeat = 60.0 / this.state.tempo
-    this.nextNoteTime += secondsPerBeat * this.state.noteLength
+    let current16thNote = this.state.current16thNote + 1
 
-    this.setState({
-      current16thNote: (this.state.current16thNote + 1)
-    }, () => {
-      if (this.state.current16thNote === 16) {
-        this.setState({ current16thNote: 0 })
-      }
-    })
+    if (current16thNote === 16) {
+      current16thNote = 0
+    }
+
+    this.setState({ current16thNote })
   }
 
   render () {
