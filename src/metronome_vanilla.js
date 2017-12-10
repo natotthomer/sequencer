@@ -1,7 +1,6 @@
 import React from 'react'
-import Input from './input/input'
 
-export default class Metronome extends React.Component {
+class Metronome extends React.Component {
   constructor (props) {
     super(props)
 
@@ -9,13 +8,13 @@ export default class Metronome extends React.Component {
 
     this.state = {
       tempo: 70.0,
-      noteResolution: 1,
+      noteResolution: 2,
       isPlaying: false,
       current16thNote: 0,
       gateLength: 0.05,
       noteLength: 0.25
     }
-
+    
     this.nextNoteTime = 0.0
 
     this.lookahead = 0.1
@@ -27,16 +26,10 @@ export default class Metronome extends React.Component {
     this.scheduler = this.scheduler.bind(this)
     this.scheduleNote = this.scheduleNote.bind(this)
     this.nextNote = this.nextNote.bind(this)
-    this.handleTempoChange = this.handleTempoChange.bind(this)
-    // this.handleTempoChange = this.handleTempoChange
   }
 
   updateStartStopText () {
     return this.state.isPlaying ? 'Stop' : 'Start'
-  }
-
-  handleTempoChange (e) {
-    this.setState({ tempo: e.target.value })
   }
 
   play () {
@@ -99,15 +92,93 @@ export default class Metronome extends React.Component {
       <div>
         Metronome
 
-        <Input type='range'
-          value={this.state.tempo}
-          min={2}
-          max={200}
-          onChange={this.handleTempoChange}
-          label='tempo' />
-
         <button type='button' onClick={this.play}>{this.updateStartStopText()}</button>
       </div>
     )
   }
 }
+
+export default Metronome
+
+// import WAAClock from 'waaclock'
+// // const WAAClock = require('waaclock')
+//
+// const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+//
+// const clock = new WAAClock(audioContext)
+//
+// let tempo = 120.0 // in BPM
+// let noteResolution = 2 // 0 = 1/16 note, 1 = 1/8, 2 = 1/4
+// let isPlaying = false
+// let current16thNote // the note being played
+// let nextNoteTime = 0.0
+// let gateLength = 0.05
+// let noteLength = 0.25
+//
+// let lookahead = 0.1
+// let schedulerInterval = 25.0
+// let timerID = null
+//
+// let startStopContainer = document.getElementById('start-stop')
+//
+// const updateStartStopText = () => {
+//   startStopContainer.innerHTML = isPlaying ? 'Stop' : 'Start'
+// }
+//
+// const scheduleNote = (beatNumber, timeToSchedule) => {
+//   if ((noteResolution === 1) && (beatNumber % 2)) {
+//     return
+//   } else if ((noteResolution === 2) && (beatNumber % 4)) {
+//     return
+//   }
+//
+//   const osc = audioContext.createOscillator()
+//   osc.connect(audioContext.destination)
+//   if (!(beatNumber % 16)) {
+//     osc.frequency.value = 220
+//   } else if (beatNumber % 4) {
+//     osc.frequency.value = 440
+//   } else {
+//     osc.frequency.value = 880
+//   }
+//
+//   osc.start(timeToSchedule)
+//   osc.stop(timeToSchedule + gateLength)
+// }
+//
+// const nextNote = () => {
+//   var secondsPerBeat = 60.0 / tempo
+//
+//   nextNoteTime += noteLength * secondsPerBeat
+//
+//   current16thNote++
+//   if (current16thNote === 16) {
+//     current16thNote = 0
+//   }
+// }
+//
+// const scheduler = () => {
+//   while (nextNoteTime < audioContext.currentTime + lookahead) {
+//     scheduleNote(current16thNote, nextNoteTime)
+//     nextNote()
+//   }
+//
+//   timerID = window.setTimeout(scheduler, schedulerInterval)
+// }
+//
+// const play = () => {
+//   isPlaying = !isPlaying
+//   updateStartStopText()
+//
+//   if (isPlaying) {
+//     current16thNote = 0
+//     nextNoteTime = audioContext.currentTime
+//     scheduler()
+//   } else {
+//     window.clearTimeout(timerID)
+//   }
+// }
+//
+// updateStartStopText()
+//
+// startStopContainer.addEventListener('click', play)

@@ -980,9 +980,6 @@ var App = function (_React$Component) {
       return _react2.default.createElement(
         'div',
         { className: 'yo' },
-        'yo yo yo sdfa ',
-        _react2.default.createElement('br', null),
-        'af',
         _react2.default.createElement(_metronome2.default, null)
       );
     }
@@ -1083,6 +1080,10 @@ var _react = __webpack_require__(2);
 
 var _react2 = _interopRequireDefault(_react);
 
+var _input = __webpack_require__(30);
+
+var _input2 = _interopRequireDefault(_input);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -1102,13 +1103,14 @@ var Metronome = function (_React$Component) {
     _this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
     _this.state = {
-      tempo: 120.0,
-      noteResolution: 0,
+      tempo: 70.0,
+      noteResolution: 1,
       isPlaying: false,
       current16thNote: 0,
       gateLength: 0.05,
       noteLength: 0.25
     };
+
     _this.nextNoteTime = 0.0;
 
     _this.lookahead = 0.1;
@@ -1120,6 +1122,8 @@ var Metronome = function (_React$Component) {
     _this.scheduler = _this.scheduler.bind(_this);
     _this.scheduleNote = _this.scheduleNote.bind(_this);
     _this.nextNote = _this.nextNote.bind(_this);
+    _this.handleTempoChange = _this.handleTempoChange.bind(_this);
+    // this.handleTempoChange = this.handleTempoChange
     return _this;
   }
 
@@ -1127,6 +1131,11 @@ var Metronome = function (_React$Component) {
     key: 'updateStartStopText',
     value: function updateStartStopText() {
       return this.state.isPlaying ? 'Stop' : 'Start';
+    }
+  }, {
+    key: 'handleTempoChange',
+    value: function handleTempoChange(e) {
+      this.setState({ tempo: e.target.value });
     }
   }, {
     key: 'play',
@@ -1198,6 +1207,12 @@ var Metronome = function (_React$Component) {
         'div',
         null,
         'Metronome',
+        _react2.default.createElement(_input2.default, { type: 'range',
+          value: this.state.tempo,
+          min: 2,
+          max: 200,
+          onChange: this.handleTempoChange,
+          label: 'tempo' }),
         _react2.default.createElement(
           'button',
           { type: 'button', onClick: this.play },
@@ -1211,89 +1226,6 @@ var Metronome = function (_React$Component) {
 }(_react2.default.Component);
 
 exports.default = Metronome;
-
-// import WAAClock from 'waaclock'
-// // const WAAClock = require('waaclock')
-//
-// const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-//
-// const clock = new WAAClock(audioContext)
-//
-// let tempo = 120.0 // in BPM
-// let noteResolution = 2 // 0 = 1/16 note, 1 = 1/8, 2 = 1/4
-// let isPlaying = false
-// let current16thNote // the note being played
-// let nextNoteTime = 0.0
-// let gateLength = 0.05
-// let noteLength = 0.25
-//
-// let lookahead = 0.1
-// let schedulerInterval = 25.0
-// let timerID = null
-//
-// let startStopContainer = document.getElementById('start-stop')
-//
-// const updateStartStopText = () => {
-//   startStopContainer.innerHTML = isPlaying ? 'Stop' : 'Start'
-// }
-//
-// const scheduleNote = (beatNumber, timeToSchedule) => {
-//   if ((noteResolution === 1) && (beatNumber % 2)) {
-//     return
-//   } else if ((noteResolution === 2) && (beatNumber % 4)) {
-//     return
-//   }
-//
-//   const osc = audioContext.createOscillator()
-//   osc.connect(audioContext.destination)
-//   if (!(beatNumber % 16)) {
-//     osc.frequency.value = 220
-//   } else if (beatNumber % 4) {
-//     osc.frequency.value = 440
-//   } else {
-//     osc.frequency.value = 880
-//   }
-//
-//   osc.start(timeToSchedule)
-//   osc.stop(timeToSchedule + gateLength)
-// }
-//
-// const nextNote = () => {
-//   var secondsPerBeat = 60.0 / tempo
-//
-//   nextNoteTime += noteLength * secondsPerBeat
-//
-//   current16thNote++
-//   if (current16thNote === 16) {
-//     current16thNote = 0
-//   }
-// }
-//
-// const scheduler = () => {
-//   while (nextNoteTime < audioContext.currentTime + lookahead) {
-//     scheduleNote(current16thNote, nextNoteTime)
-//     nextNote()
-//   }
-//
-//   timerID = window.setTimeout(scheduler, schedulerInterval)
-// }
-//
-// const play = () => {
-//   isPlaying = !isPlaying
-//   updateStartStopText()
-//
-//   if (isPlaying) {
-//     current16thNote = 0
-//     nextNoteTime = audioContext.currentTime
-//     scheduler()
-//   } else {
-//     window.clearTimeout(timerID)
-//   }
-// }
-//
-// updateStartStopText()
-//
-// startStopContainer.addEventListener('click', play)
 
 /***/ }),
 /* 18 */
@@ -18556,6 +18488,76 @@ var U={Children:{map:function(a,b,e){if(null==a)return a;var c=[];T(a,c,null,b,e
 d=a.key,g=a.ref,k=a._owner;if(null!=b){void 0!==b.ref&&(g=b.ref,k=G.current);void 0!==b.key&&(d=""+b.key);if(a.type&&a.type.defaultProps)var f=a.type.defaultProps;for(h in b)H.call(b,h)&&!I.hasOwnProperty(h)&&(c[h]=void 0===b[h]&&void 0!==f?f[h]:b[h])}var h=arguments.length-2;if(1===h)c.children=e;else if(1<h){f=Array(h);for(var l=0;l<h;l++)f[l]=arguments[l+2];c.children=f}return{$$typeof:r,type:a.type,key:d,ref:g,props:c,_owner:k}},createFactory:function(a){var b=J.bind(null,a);b.type=a;return b},
 isValidElement:K,version:"16.2.0",__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentOwner:G,assign:m}},V=Object.freeze({default:U}),W=V&&U||V;module.exports=W["default"]?W["default"]:W;
 
+
+/***/ }),
+/* 29 */,
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = Input;
+
+var _react = __webpack_require__(2);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _range = __webpack_require__(32);
+
+var _range2 = _interopRequireDefault(_range);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function Input(props) {
+  switch (props.type) {
+    case 'range':
+      {
+        return _react2.default.createElement(_range2.default, props);
+      }
+    default:
+      {
+        return _react2.default.createElement('div', null);
+      }
+  }
+}
+
+/***/ }),
+/* 31 */,
+/* 32 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+exports.default = Range;
+
+var _react = __webpack_require__(2);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function Range(props) {
+  return _react2.default.createElement(
+    'div',
+    null,
+    props.label,
+    props.value,
+    _react2.default.createElement('input', _extends({ type: 'range'
+    }, props, {
+      onChange: props.onChange }))
+  );
+}
 
 /***/ })
 /******/ ]);
