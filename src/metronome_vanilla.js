@@ -14,7 +14,7 @@ class Metronome extends React.Component {
       gateLength: 0.05,
       noteLength: 0.25
     }
-    
+
     this.nextNoteTime = 0.0
 
     this.lookahead = 0.1

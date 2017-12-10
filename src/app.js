@@ -1,12 +1,12 @@
 import React from 'react'
 
-import Metronome from './metronome'
+import Sequencer from './sequencer'
 
 class App extends React.Component {
   render () {
     return (
       <div className='yo'>
-        <Metronome />
+        <Sequencer />
       </div>
     )
   }

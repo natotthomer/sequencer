@@ -16,20 +16,20 @@ function makeSteps (number) {
   return value
 }
 
-export default class Metronome extends React.Component {
+export default class Sequencer extends React.Component {
   constructor (props) {
     super(props)
 
     this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
     this.clock = new WAAClock(this.audioContext)
 
-    this.delayNode = this.audioContext.createDelay(1)
+    this.delayNode = this.audioContext.createDelay(30)
     this.feedbackNode = this.audioContext.createGain()
     this.bypassNode = this.audioContext.createGain()
     this.masterNode = this.audioContext.createGain()
 
-    this.delayNode.delayTime.value = 0.5
-    this.feedbackNode.gain.value = 1
+    this.delayNode.delayTime.value = 0.001
+    this.feedbackNode.gain.value = 0
     this.bypassNode.gain.value = 1
 
     this.delayNode.connect(this.feedbackNode)
@@ -47,12 +47,12 @@ export default class Metronome extends React.Component {
       noteResolution: 0,
       isPlaying: false,
       current16thNote: 0,
-      gateLength: 0.05,
+      gateLength: 0.03,
       noteLength: 0.25,
       numberOfSteps,
       steps: makeSteps(numberOfSteps),
-      delayTime: 0.5,
-      delayFeedback: 1.0
+      delayTime: 0.001,
+      delayFeedback: 0.0
     }
 
     this.lookahead = 0.1
@@ -219,13 +219,13 @@ export default class Metronome extends React.Component {
         <Input type='range'
           value={this.state.delayTime}
           min={0.001}
-          max={2.0}
+          max={4.0}
           step={0.001}
           onChange={this.handleDelayTimeChange}
           label='delay time' />
         <Input type='range'
           value={this.state.delayFeedback}
-          min={0.01}
+          min={0.00}
           max={1.0}
           step={0.01}
           onChange={this.handleDelayFeedbackChange}
