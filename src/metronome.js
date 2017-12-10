@@ -48,6 +48,7 @@ export default class Metronome extends React.Component {
     this.handleNoteResolutionChange = this.handleNoteResolutionChange.bind(this)
     this.handleNumberOfStepsChange = this.handleNumberOfStepsChange.bind(this)
     this.handleStepChange = this.handleStepChange.bind(this)
+    this.handleStepOnOff = this.handleStepOnOff.bind(this)
     this.makeOsc = this.makeOsc.bind(this)
   }
 
@@ -88,6 +89,12 @@ export default class Metronome extends React.Component {
     this.setState({ steps })
   }
 
+  handleStepOnOff (stepNumber) {
+    const steps = this.state.steps
+    steps[stepNumber].enabled = !steps[stepNumber].enabled
+    this.setState({ steps })
+  }
+
   play () {
     const isPlaying = !this.state.isPlaying
     this.setState({ isPlaying })
@@ -115,9 +122,11 @@ export default class Metronome extends React.Component {
     const osc = this.audioContext.createOscillator()
     osc.type = 'sawtooth'
     osc.connect(this.audioContext.destination)
-    if (this.state.steps[beatNumber]) {
+    if (this.state.steps[beatNumber] && this.state.steps[beatNumber].enabled) {
       const noteNumber = this.state.steps[beatNumber].midiNoteNumber
       osc.frequency.value = 440 * Math.pow(2, (noteNumber - 69) / 12)
+    } else {
+      return
     }
 
     return osc
@@ -145,14 +154,18 @@ export default class Metronome extends React.Component {
     let steps = []
 
     for (var i = 0; i < this.state.numberOfSteps; i++) {
+      const stepNum = i
       steps.push(
-        <Input type='range'
-          value={this.state.steps[i] ? this.state.steps[i].midiNoteNumber : 12}
-          min={12}
-          max={127}
-          key={i}
-          label={i + 1}
-          onChange={this.handleStepChange} />
+        <div key={i} className='yo'>
+          <Input type='range'
+            value={this.state.steps[i] ? this.state.steps[i].midiNoteNumber : 12}
+            min={12}
+            max={127}
+            label={i + 1}
+            onChange={this.handleStepChange} />
+          <div className='hi'
+            onClick={() => this.handleStepOnOff(stepNum)}>{this.state.steps[i].enabled ? 'on' : 'off'}</div>
+        </div>
       )
     }
 
@@ -171,11 +184,6 @@ export default class Metronome extends React.Component {
           max={32}
           onChange={this.handleNumberOfStepsChange}
           label='Steps' />
-        <Input type='dropdown'
-          value={this.state.noteResolution}
-          onChange={this.handleNoteResolutionChange}
-          options={[0, 1, 2]}
-          label='subdivision' />
         {steps}
 
         <button type='button' onClick={this.play}>{this.updateStartStopText()}</button>
