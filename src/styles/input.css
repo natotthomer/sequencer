@@ -1,7 +1,15 @@
-div {
-  background: blue;
+.seq-range-container {
+  display: inline-block;
 }
 
-body {
-  background: red;
+.seq-range-label {
+  text-align: center;
+}
+
+.seq-range-value {
+  text-align: center;
+}
+
+.seq-range-slider {
+  -webkit-appearance: slider-vertical;
 }
