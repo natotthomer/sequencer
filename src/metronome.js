@@ -23,6 +23,23 @@ export default class Metronome extends React.Component {
     this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
     this.clock = new WAAClock(this.audioContext)
 
+    this.delayNode = this.audioContext.createDelay(1)
+    this.feedbackNode = this.audioContext.createGain()
+    this.bypassNode = this.audioContext.createGain()
+    this.masterNode = this.audioContext.createGain()
+
+    this.delayNode.delayTime.value = 0.5
+    this.feedbackNode.gain.value = 1
+    this.bypassNode.gain.value = 1
+
+    this.delayNode.connect(this.feedbackNode)
+    this.feedbackNode.connect(this.delayNode)
+
+    this.delayNode.connect(this.bypassNode)
+    this.bypassNode.connect(this.masterNode)
+
+    this.masterNode.connect(this.audioContext.destination)
+
     const numberOfSteps = 5
 
     this.state = {
@@ -33,7 +50,9 @@ export default class Metronome extends React.Component {
       gateLength: 0.05,
       noteLength: 0.25,
       numberOfSteps,
-      steps: makeSteps(numberOfSteps)
+      steps: makeSteps(numberOfSteps),
+      delayTime: 0.5,
+      delayFeedback: 1.0
     }
 
     this.lookahead = 0.1
@@ -49,6 +68,8 @@ export default class Metronome extends React.Component {
     this.handleNumberOfStepsChange = this.handleNumberOfStepsChange.bind(this)
     this.handleStepChange = this.handleStepChange.bind(this)
     this.handleStepOnOff = this.handleStepOnOff.bind(this)
+    this.handleDelayTimeChange = this.handleDelayTimeChange.bind(this)
+    this.handleDelayFeedbackChange = this.handleDelayFeedbackChange.bind(this)
     this.makeOsc = this.makeOsc.bind(this)
   }
 
@@ -95,6 +116,16 @@ export default class Metronome extends React.Component {
     this.setState({ steps })
   }
 
+  handleDelayTimeChange (e) {
+    this.delayNode.delayTime.value = e.target.value
+    this.setState({ delayTime: e.target.value })
+  }
+
+  handleDelayFeedbackChange (e) {
+    this.feedbackNode.gain.value = e.target.value
+    this.setState({ delayFeedback: e.target.value })
+  }
+
   play () {
     const isPlaying = !this.state.isPlaying
     this.setState({ isPlaying })
@@ -121,7 +152,6 @@ export default class Metronome extends React.Component {
   makeOsc (beatNumber) {
     const osc = this.audioContext.createOscillator()
     osc.type = 'sawtooth'
-    osc.connect(this.audioContext.destination)
     if (this.state.steps[beatNumber] && this.state.steps[beatNumber].enabled) {
       const noteNumber = this.state.steps[beatNumber].midiNoteNumber
       osc.frequency.value = 440 * Math.pow(2, (noteNumber - 69) / 12)
@@ -135,8 +165,10 @@ export default class Metronome extends React.Component {
   scheduleNote (beatNumber) {
     let osc = this.makeOsc(beatNumber)
     if (osc) {
+      osc.connect(this.delayNode)
       osc.start(this.audioContext.currentTime)
       osc.stop(this.audioContext.currentTime + this.state.gateLength)
+      // osc.disconnect(this.delay)
     }
   }
 
@@ -184,6 +216,20 @@ export default class Metronome extends React.Component {
           max={32}
           onChange={this.handleNumberOfStepsChange}
           label='Steps' />
+        <Input type='range'
+          value={this.state.delayTime}
+          min={0.001}
+          max={2.0}
+          step={0.001}
+          onChange={this.handleDelayTimeChange}
+          label='delay time' />
+        <Input type='range'
+          value={this.state.delayFeedback}
+          min={0.01}
+          max={1.0}
+          step={0.01}
+          onChange={this.handleDelayFeedbackChange}
+          label='delay feedback' />
         {steps}
 
         <button type='button' onClick={this.play}>{this.updateStartStopText()}</button>
