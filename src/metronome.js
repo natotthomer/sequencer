@@ -28,6 +28,7 @@ export default class Metronome extends React.Component {
     this.scheduleNote = this.scheduleNote.bind(this)
     this.nextNote = this.nextNote.bind(this)
     this.handleTempoChange = this.handleTempoChange.bind(this)
+    this.handleNoteResolutionChange = this.handleNoteResolutionChange.bind(this)
     // this.handleTempoChange = this.handleTempoChange
   }
 
@@ -37,6 +38,11 @@ export default class Metronome extends React.Component {
 
   handleTempoChange (e) {
     this.setState({ tempo: e.target.value })
+  }
+
+  handleNoteResolutionChange (e) {
+
+    this.setState({ noteResolution: parseInt(e.target.value) })
   }
 
   play () {
@@ -97,14 +103,18 @@ export default class Metronome extends React.Component {
   render () {
     return (
       <div>
-        Metronome
-
+        Sequencer
         <Input type='range'
           value={this.state.tempo}
           min={2}
           max={200}
           onChange={this.handleTempoChange}
           label='tempo' />
+        <Input type='dropdown'
+          value={this.state.noteResolution}
+          onChange={this.handleNoteResolutionChange}
+          options={[0, 1, 2]}
+          label='subdivision' />
 
         <button type='button' onClick={this.play}>{this.updateStartStopText()}</button>
       </div>
