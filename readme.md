@@ -1,6 +1,6 @@
 ## Sequencer
 
-For now, it's just a simple metronome, but around that core functionality, I will be writing an analog-style step sequencer.
+A very simple analog-style step sequencer. Pitch & note on/off per step; 2-32 steps.
 
 ## Motivation
 
