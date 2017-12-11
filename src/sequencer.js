@@ -20,6 +20,52 @@ export default class Sequencer extends React.Component {
   constructor (props) {
     super(props)
 
+    this.setUpAudioContextAndClock()
+
+    const numberOfSteps = 5
+
+    this.state = {
+      tempo: 120.0,
+      noteResolution: 0,
+      isPlaying: false,
+      current16thNote: 0,
+      gateLength: 0.03,
+      noteLength: 0.25,
+      numberOfSteps,
+      steps: makeSteps(numberOfSteps),
+      delayTime: 0.001,
+      delayFeedback: 0.0
+    }
+
+    this.setUpLocalStorage()
+
+    this.lookahead = 0.1
+    this.schedulerInterval = 25.0
+    this.timerID = null
+
+    this.updateStartStopText = this.updateStartStopText.bind(this)
+    this.play = this.play.bind(this)
+    this.scheduleNote = this.scheduleNote.bind(this)
+    this.nextNote = this.nextNote.bind(this)
+    this.handleTempoChange = this.handleTempoChange.bind(this)
+    this.handleNoteResolutionChange = this.handleNoteResolutionChange.bind(this)
+    this.handleNumberOfStepsChange = this.handleNumberOfStepsChange.bind(this)
+    this.handleStepChange = this.handleStepChange.bind(this)
+    this.handleStepOnOff = this.handleStepOnOff.bind(this)
+    this.handleDelayTimeChange = this.handleDelayTimeChange.bind(this)
+    this.handleDelayFeedbackChange = this.handleDelayFeedbackChange.bind(this)
+    this.makeOsc = this.makeOsc.bind(this)
+    this.setUpAudioContextAndClock = this.setUpAudioContextAndClock.bind(this)
+    this.setUpLocalStorage = this.setUpLocalStorage.bind(this)
+  }
+
+  setUpLocalStorage () {
+    if (this.localStorage) {
+      this.localStorage = window.localStorage
+    }
+  }
+
+  setUpAudioContextAndClock () {
     this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
     this.clock = new WAAClock(this.audioContext)
 
@@ -39,38 +85,6 @@ export default class Sequencer extends React.Component {
     this.bypassNode.connect(this.masterNode)
 
     this.masterNode.connect(this.audioContext.destination)
-
-    const numberOfSteps = 5
-
-    this.state = {
-      tempo: 120.0,
-      noteResolution: 0,
-      isPlaying: false,
-      current16thNote: 0,
-      gateLength: 0.03,
-      noteLength: 0.25,
-      numberOfSteps,
-      steps: makeSteps(numberOfSteps),
-      delayTime: 0.001,
-      delayFeedback: 0.0
-    }
-
-    this.lookahead = 0.1
-    this.schedulerInterval = 25.0
-    this.timerID = null
-
-    this.updateStartStopText = this.updateStartStopText.bind(this)
-    this.play = this.play.bind(this)
-    this.scheduleNote = this.scheduleNote.bind(this)
-    this.nextNote = this.nextNote.bind(this)
-    this.handleTempoChange = this.handleTempoChange.bind(this)
-    this.handleNoteResolutionChange = this.handleNoteResolutionChange.bind(this)
-    this.handleNumberOfStepsChange = this.handleNumberOfStepsChange.bind(this)
-    this.handleStepChange = this.handleStepChange.bind(this)
-    this.handleStepOnOff = this.handleStepOnOff.bind(this)
-    this.handleDelayTimeChange = this.handleDelayTimeChange.bind(this)
-    this.handleDelayFeedbackChange = this.handleDelayFeedbackChange.bind(this)
-    this.makeOsc = this.makeOsc.bind(this)
   }
 
   updateStartStopText () {
@@ -151,6 +165,7 @@ export default class Sequencer extends React.Component {
 
   makeOsc (beatNumber) {
     const osc = this.audioContext.createOscillator()
+    osc.connect(this.delayNode)
     osc.type = 'sawtooth'
     if (this.state.steps[beatNumber] && this.state.steps[beatNumber].enabled) {
       const noteNumber = this.state.steps[beatNumber].midiNoteNumber
@@ -165,7 +180,6 @@ export default class Sequencer extends React.Component {
   scheduleNote (beatNumber) {
     let osc = this.makeOsc(beatNumber)
     if (osc) {
-      osc.connect(this.delayNode)
       osc.start(this.audioContext.currentTime)
       osc.stop(this.audioContext.currentTime + this.state.gateLength)
       // osc.disconnect(this.delay)
@@ -188,7 +202,7 @@ export default class Sequencer extends React.Component {
     for (var i = 0; i < this.state.numberOfSteps; i++) {
       const stepNum = i
       steps.push(
-        <div key={i} className='yo'>
+        <div key={i} className='seq-step'>
           <Input type='range'
             value={this.state.steps[i] ? this.state.steps[i].midiNoteNumber : 12}
             min={12}
@@ -204,33 +218,39 @@ export default class Sequencer extends React.Component {
     return (
       <div>
         Sequencer
-        <Input type='range'
-          value={this.state.tempo}
-          min={2}
-          max={200}
-          onChange={this.handleTempoChange}
-          label='tempo' />
-        <Input type='range'
-          value={this.state.numberOfSteps}
-          min={1}
-          max={32}
-          onChange={this.handleNumberOfStepsChange}
-          label='Steps' />
-        <Input type='range'
-          value={this.state.delayTime}
-          min={0.001}
-          max={4.0}
-          step={0.001}
-          onChange={this.handleDelayTimeChange}
-          label='delay time' />
-        <Input type='range'
-          value={this.state.delayFeedback}
-          min={0.00}
-          max={1.0}
-          step={0.01}
-          onChange={this.handleDelayFeedbackChange}
-          label='delay feedback' />
-        {steps}
+        <div className='seq-global-controls-container'>
+          <Input type='range'
+            value={this.state.tempo}
+            min={2}
+            max={200}
+            onChange={this.handleTempoChange}
+            label='tempo' />
+          <Input type='range'
+            value={this.state.numberOfSteps}
+            min={1}
+            max={32}
+            onChange={this.handleNumberOfStepsChange}
+            label='Steps' />
+        </div>
+        <div className='seq-delay-container'>
+          <Input type='range'
+            value={this.state.delayTime}
+            min={0.001}
+            max={4.0}
+            step={0.001}
+            onChange={this.handleDelayTimeChange}
+            label='delay time' />
+          <Input type='range'
+            value={this.state.delayFeedback}
+            min={0.00}
+            max={1.0}
+            step={0.01}
+            onChange={this.handleDelayFeedbackChange}
+            label='delay feedback' />
+        </div>
+        <div className="seq-steps-container">
+          {steps}
+        </div>
 
         <button type='button' onClick={this.play}>{this.updateStartStopText()}</button>
       </div>

@@ -5,7 +5,7 @@ import Sequencer from './sequencer'
 class App extends React.Component {
   render () {
     return (
-      <div className='yo'>
+      <div className='app'>
         <Sequencer />
       </div>
     )

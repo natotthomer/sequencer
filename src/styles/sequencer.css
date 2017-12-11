@@ -1,0 +1,16 @@
+.seq-global-controls-container {
+  border: 1px solid black;
+}
+
+.seq-delay-container {
+  border: 1px solid black;
+}
+
+.seq-steps-container {
+  border: 1px solid black;
+}
+
+.seq-step {
+  display: inline-block;
+  text-align: center;
+}
