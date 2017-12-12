@@ -148,8 +148,12 @@ export default class Sequencer extends React.Component {
 
   handleDelayMixChange (e) {
     const value = e.target.value
-    this.bypassNode.gain.setValueAtTime(1 - value, this.audioContext.currentTime)
-    this.delayGainNode.gain.setValueAtTime(0 + value, this.audioContext.currentTime)
+
+    const bypassGain = Math.cos(value * 0.5 * Math.PI)
+    const delayGain = Math.cos((1.0 - (value)) * 0.5 * Math.PI)
+
+    this.bypassNode.gain.setValueAtTime(bypassGain, this.audioContext.currentTime)
+    this.delayGainNode.gain.setValueAtTime(delayGain, this.audioContext.currentTime)
     this.setState({ delayMix: value })
   }
 
