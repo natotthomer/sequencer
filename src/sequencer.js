@@ -36,7 +36,8 @@ export default class Sequencer extends React.Component {
       steps: makeSteps(numberOfSteps),
       delayTime: 0.000,
       delayFeedback: 0.0,
-      delayMix: 0
+      delayMix: 0,
+      masterGain: 1
     }
 
     this.setUpLocalStorage()
@@ -57,6 +58,7 @@ export default class Sequencer extends React.Component {
     this.handleDelayTimeChange = this.handleDelayTimeChange.bind(this)
     this.handleDelayFeedbackChange = this.handleDelayFeedbackChange.bind(this)
     this.handleDelayMixChange = this.handleDelayMixChange.bind(this)
+    this.handleMasterGainChange = this.handleMasterGainChange.bind(this)
     this.makeOsc = this.makeOsc.bind(this)
     this.setUpAudioContextAndClock = this.setUpAudioContextAndClock.bind(this)
     this.setUpLocalStorage = this.setUpLocalStorage.bind(this)
@@ -157,16 +159,23 @@ export default class Sequencer extends React.Component {
     this.setState({ delayMix: value })
   }
 
+  handleMasterGainChange (e) {
+    const { value } = e.target
+    this.masterNode.gain.setValueAtTime(value, this.audioContext.currentTime)
+    this.setState({ masterGain: value })
+  }
+
   play () {
     const isPlaying = !this.state.isPlaying
     this.setState({ isPlaying })
     if (isPlaying) {
       this.clock.start()
-      var secondsPerBeat = 60.0 / this.state.tempo
-      this.event1 = this.clock.callbackAtTime(() => {
-        this.scheduleNote(this.state.current16thNote)
+      const secondsPerBeat = 60.0 / this.state.tempo
+      const repeatTime = secondsPerBeat * this.state.noteLength
+      this.event1 = this.clock.callbackAtTime((event) => {
+        this.scheduleNote(this.state.current16thNote, event.deadline)
         this.nextNote()
-      }, 0).repeat(secondsPerBeat * this.state.noteLength)
+      }, 1).tolerance({ early: 0.1, late: 0.5 }).repeat(repeatTime)
     } else {
       this.event1.clear()
       this.clock.stop()
@@ -195,11 +204,12 @@ export default class Sequencer extends React.Component {
     return osc
   }
 
-  scheduleNote (beatNumber) {
+  scheduleNote (beatNumber, deadline) {
+    console.log(this.event1);
     let osc = this.makeOsc(beatNumber)
     if (osc) {
-      osc.start(this.audioContext.currentTime)
-      osc.stop(this.audioContext.currentTime + this.state.gateLength)
+      osc.start(deadline)
+      osc.stop(deadline + this.state.gateLength)
     }
   }
 
@@ -230,6 +240,13 @@ export default class Sequencer extends React.Component {
             max={32}
             onChange={this.handleNumberOfStepsChange}
             label='Steps' />
+          <Input type='range'
+            value={this.state.masterGain}
+            min={0}
+            max={1}
+            step={0.01}
+            onChange={this.handleMasterGainChange}
+            label='Master' />
         </div>
         <div className='seq-delay-container'>
           <Input type='range'
