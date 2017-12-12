@@ -30,5 +30,9 @@ module.exports = {
   plugins: [
     new ExtractTextPlugin('bundle.css')
   ],
-  devtool: 'source-map'
+  devtool: 'source-map',
+  devServer: {
+    contentBase: path.resolve(__dirname),
+    port: 9000
+  }
 }

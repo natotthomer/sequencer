@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "relaunch": "rm -rf node_modules/ && npm install && webpack --watch",
-    "start": "webpack --watch"
+    "start": "webpack --watch",
+    "start:dev": "webpack-dev-server"
   },
   "author": "",
   "license": "ISC",
@@ -25,6 +26,7 @@
     "react-dom": "^16.2.0",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.19.0",
-    "webpack": "^3.5.5"
+    "webpack": "^3.5.5",
+    "webpack-dev-server": "^2.9.7"
   }
 }
