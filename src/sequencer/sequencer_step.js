@@ -1,13 +1,24 @@
 import React from 'react'
-import pick from 'lodash/pick'
+// import pick from 'lodash/pick'
 
-import Range from '../input/range'
+import Input from '../input/input'
 
 export default function SequencerStep (props) {
-  const rangeProps = props.pick('label')
+  const defaults = {
+    min: 12,
+    max: 127
+  }
+
   return (
-    <div>
-      <Range
+    <div className='seq-step'>
+      <Input type='range'
+        value={props.step ? props.step.midiNoteNumber : 12}
+        min={defaults.min}
+        max={defaults.max}
+        label={props.stepNumber + 1}
+        onChange={props.handleStepValueChange} />
+      <div className='hi'
+        onClick={() => props.handleStepOnOff(props.stepNumber)}>{props.step.enabled ? 'on' : 'off'}</div>
     </div>
   )
 }

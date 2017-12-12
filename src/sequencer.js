@@ -2,6 +2,7 @@ import React from 'react'
 import WAAClock from 'waaclock'
 
 import Input from './input/input'
+import SequencerSteps from './sequencer/sequencer_steps'
 
 function makeSteps (number) {
   let value = []
@@ -33,8 +34,9 @@ export default class Sequencer extends React.Component {
       noteLength: 0.25,
       numberOfSteps,
       steps: makeSteps(numberOfSteps),
-      delayTime: 0.001,
-      delayFeedback: 0.0
+      delayTime: 0.000,
+      delayFeedback: 0.0,
+      delayMix: 0
     }
 
     this.setUpLocalStorage()
@@ -50,10 +52,11 @@ export default class Sequencer extends React.Component {
     this.handleTempoChange = this.handleTempoChange.bind(this)
     this.handleNoteResolutionChange = this.handleNoteResolutionChange.bind(this)
     this.handleNumberOfStepsChange = this.handleNumberOfStepsChange.bind(this)
-    this.handleStepChange = this.handleStepChange.bind(this)
+    this.handleStepValueChange = this.handleStepValueChange.bind(this)
     this.handleStepOnOff = this.handleStepOnOff.bind(this)
     this.handleDelayTimeChange = this.handleDelayTimeChange.bind(this)
     this.handleDelayFeedbackChange = this.handleDelayFeedbackChange.bind(this)
+    this.handleDelayMixChange = this.handleDelayMixChange.bind(this)
     this.makeOsc = this.makeOsc.bind(this)
     this.setUpAudioContextAndClock = this.setUpAudioContextAndClock.bind(this)
     this.setUpLocalStorage = this.setUpLocalStorage.bind(this)
@@ -69,19 +72,22 @@ export default class Sequencer extends React.Component {
     this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
     this.clock = new WAAClock(this.audioContext)
 
-    this.delayNode = this.audioContext.createDelay(30)
+    this.delayNode = this.audioContext.createDelay(4)
     this.feedbackNode = this.audioContext.createGain()
+    this.delayGainNode = this.audioContext.createGain()
     this.bypassNode = this.audioContext.createGain()
     this.masterNode = this.audioContext.createGain()
 
-    this.delayNode.delayTime.value = 0.001
-    this.feedbackNode.gain.value = 0
-    this.bypassNode.gain.value = 1
+    this.delayNode.delayTime.setValueAtTime(0.000, this.audioContext.currentTime)
+    this.feedbackNode.gain.setValueAtTime(0, this.audioContext.currentTime)
+    this.bypassNode.gain.setValueAtTime(1, this.audioContext.currentTime)
+    this.delayGainNode.gain.setValueAtTime(0, this.audioContext.currentTime)
 
     this.delayNode.connect(this.feedbackNode)
     this.feedbackNode.connect(this.delayNode)
 
-    this.delayNode.connect(this.bypassNode)
+    this.delayNode.connect(this.delayGainNode)
+    this.delayGainNode.connect(this.masterNode)
     this.bypassNode.connect(this.masterNode)
 
     this.masterNode.connect(this.audioContext.destination)
@@ -117,7 +123,7 @@ export default class Sequencer extends React.Component {
     })
   }
 
-  handleStepChange (e) {
+  handleStepValueChange (e) {
     const steps = this.state.steps
     const step = steps[parseInt(e.target.attributes.label.value) - 1]
     step.midiNoteNumber = parseInt(e.target.value)
@@ -131,13 +137,20 @@ export default class Sequencer extends React.Component {
   }
 
   handleDelayTimeChange (e) {
-    this.delayNode.delayTime.value = e.target.value
+    this.delayNode.delayTime.setValueAtTime(e.target.value, this.audioContext.currentTime)
     this.setState({ delayTime: e.target.value })
   }
 
   handleDelayFeedbackChange (e) {
-    this.feedbackNode.gain.value = e.target.value
+    this.feedbackNode.gain.setValueAtTime(e.target.value, this.audioContext.currentTime)
     this.setState({ delayFeedback: e.target.value })
+  }
+
+  handleDelayMixChange (e) {
+    const value = e.target.value
+    this.bypassNode.gain.setValueAtTime(1 - value, this.audioContext.currentTime)
+    this.delayGainNode.gain.setValueAtTime(0 + value, this.audioContext.currentTime)
+    this.setState({ delayMix: value })
   }
 
   play () {
@@ -146,10 +159,10 @@ export default class Sequencer extends React.Component {
     if (isPlaying) {
       this.clock.start()
       var secondsPerBeat = 60.0 / this.state.tempo
-      this.event1 = this.clock.callbackAtTime(function () {
+      this.event1 = this.clock.callbackAtTime(() => {
         this.scheduleNote(this.state.current16thNote)
         this.nextNote()
-      }.bind(this), 0).repeat(secondsPerBeat * this.state.noteLength)
+      }, 0).repeat(secondsPerBeat * this.state.noteLength)
     } else {
       this.event1.clear()
       this.clock.stop()
@@ -166,10 +179,11 @@ export default class Sequencer extends React.Component {
   makeOsc (beatNumber) {
     const osc = this.audioContext.createOscillator()
     osc.connect(this.delayNode)
+    osc.connect(this.bypassNode)
     osc.type = 'sawtooth'
     if (this.state.steps[beatNumber] && this.state.steps[beatNumber].enabled) {
       const noteNumber = this.state.steps[beatNumber].midiNoteNumber
-      osc.frequency.value = 440 * Math.pow(2, (noteNumber - 69) / 12)
+      osc.frequency.setValueAtTime(440 * Math.pow(2, (noteNumber - 69) / 12), this.audioContext.currentTime)
     } else {
       return
     }
@@ -182,7 +196,6 @@ export default class Sequencer extends React.Component {
     if (osc) {
       osc.start(this.audioContext.currentTime)
       osc.stop(this.audioContext.currentTime + this.state.gateLength)
-      // osc.disconnect(this.delay)
     }
   }
 
@@ -197,24 +210,6 @@ export default class Sequencer extends React.Component {
   }
 
   render () {
-    let steps = []
-
-    for (var i = 0; i < this.state.numberOfSteps; i++) {
-      const stepNum = i
-      steps.push(
-        <div key={i} className='seq-step'>
-          <Input type='range'
-            value={this.state.steps[i] ? this.state.steps[i].midiNoteNumber : 12}
-            min={12}
-            max={127}
-            label={i + 1}
-            onChange={this.handleStepChange} />
-          <div className='hi'
-            onClick={() => this.handleStepOnOff(stepNum)}>{this.state.steps[i].enabled ? 'on' : 'off'}</div>
-        </div>
-      )
-    }
-
     return (
       <div>
         Sequencer
@@ -235,7 +230,7 @@ export default class Sequencer extends React.Component {
         <div className='seq-delay-container'>
           <Input type='range'
             value={this.state.delayTime}
-            min={0.001}
+            min={0.000}
             max={4.0}
             step={0.001}
             onChange={this.handleDelayTimeChange}
@@ -247,11 +242,19 @@ export default class Sequencer extends React.Component {
             step={0.01}
             onChange={this.handleDelayFeedbackChange}
             label='delay feedback' />
+          <Input type='range'
+            value={this.state.delayMix}
+            min={0.00}
+            max={1.0}
+            step={0.01}
+            onChange={this.handleDelayMixChange}
+            label='delay mix' />
         </div>
-        <div className="seq-steps-container">
-          {steps}
-        </div>
-
+        <SequencerSteps
+          numberOfSteps={this.state.numberOfSteps}
+          handleStepOnOff={this.handleStepOnOff}
+          handleStepValueChange={this.handleStepValueChange}
+          steps={this.state.steps} />
         <button type='button' onClick={this.play}>{this.updateStartStopText()}</button>
       </div>
     )
