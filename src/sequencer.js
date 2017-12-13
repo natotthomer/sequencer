@@ -175,7 +175,7 @@ export default class Sequencer extends React.Component {
       this.event1 = this.clock.callbackAtTime((event) => {
         this.scheduleNote(this.state.current16thNote, event.deadline)
         this.nextNote()
-      }, 1).tolerance({ early: 0.1, late: 0.5 }).repeat(repeatTime)
+      }, this.audioContext.currentTime).tolerance({ early: 0.1, late: 0.5 }).repeat(repeatTime)
     } else {
       this.event1.clear()
       this.clock.stop()
