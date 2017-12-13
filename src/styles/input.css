@@ -1,5 +1,7 @@
-.seq-range-container {
-  display: inline-block;
+/*.seq-range-container {
+  display: flex;
+  flex-direction: column;
+  width: 80px;
 }
 
 .seq-range-label {
@@ -8,8 +10,59 @@
 
 .seq-range-value {
   text-align: center;
-}
+}*/
 
 .seq-range-slider {
-  -webkit-appearance: slider-vertical;
+  -width: 40px;
+  /*-webkit-appearance: slider-vertical;*/
 }
+
+.seq-button {
+  min-height: 20px;
+  max-width: 30px;
+  background: grey;
+  margin: 0 auto;
+  border: 1px solid black;
+  border-radius: 6px;
+}
+
+.seq-button.active {
+  background: red;
+}
+/*
+input[type=range] {
+    removes default webkit styles
+    -webkit-appearance: none;
+    fix for FF unable to apply focus style bug
+    border: 2px solid #444;
+    border-radius: 0px;
+    required for proper track sizing in FF
+    width: 85px;
+    margin-left: -1px;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    width: 85px;
+    height: 9px;
+    background: #aaa;
+    border: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 25px;
+    width: 10px;
+    background: #444;
+    border: solid 2px #666;
+    margin-top: -8.5px;
+    border-radius: 40%;
+}
+
+input[type=range]:focus {
+    -webkit-appearance: none;
+    outline: none;
+}
+
+input[type=range]:focus {
+    border: solid 2px black;
+}*/

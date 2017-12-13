@@ -54,7 +54,7 @@ export default class Sequencer extends React.Component {
     this.handleNoteResolutionChange = this.handleNoteResolutionChange.bind(this)
     this.handleNumberOfStepsChange = this.handleNumberOfStepsChange.bind(this)
     this.handleStepValueChange = this.handleStepValueChange.bind(this)
-    this.handleStepOnOff = this.handleStepOnOff.bind(this)
+    this.handleStepOnOffChange = this.handleStepOnOffChange.bind(this)
     this.handleDelayTimeChange = this.handleDelayTimeChange.bind(this)
     this.handleDelayFeedbackChange = this.handleDelayFeedbackChange.bind(this)
     this.handleDelayMixChange = this.handleDelayMixChange.bind(this)
@@ -125,14 +125,14 @@ export default class Sequencer extends React.Component {
     })
   }
 
-  handleStepValueChange (e) {
+  handleStepValueChange (stepNumber, value) {
     const steps = this.state.steps
-    const step = steps[parseInt(e.target.attributes.label.value) - 1]
-    step.midiNoteNumber = parseInt(e.target.value)
+    steps[stepNumber].midiNoteNumber = value
+
     this.setState({ steps })
   }
 
-  handleStepOnOff (stepNumber) {
+  handleStepOnOffChange (stepNumber) {
     const steps = this.state.steps
     steps[stepNumber].enabled = !steps[stepNumber].enabled
     this.setState({ steps })
@@ -205,7 +205,6 @@ export default class Sequencer extends React.Component {
   }
 
   scheduleNote (beatNumber, deadline) {
-    console.log(this.event1);
     let osc = this.makeOsc(beatNumber)
     if (osc) {
       osc.start(deadline)
@@ -273,7 +272,7 @@ export default class Sequencer extends React.Component {
         </div>
         <SequencerSteps
           numberOfSteps={this.state.numberOfSteps}
-          handleStepOnOff={this.handleStepOnOff}
+          handleStepOnOffChange={this.handleStepOnOffChange}
           handleStepValueChange={this.handleStepValueChange}
           steps={this.state.steps} />
         <button type='button' onClick={this.play}>{this.updateStartStopText()}</button>

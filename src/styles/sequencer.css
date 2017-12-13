@@ -1,16 +1,20 @@
 .seq-global-controls-container {
   border: 1px solid black;
+  display: flex;
 }
 
 .seq-delay-container {
   border: 1px solid black;
+  display: flex;
 }
 
 .seq-steps-container {
+  display: flex;
   border: 1px solid black;
 }
 
 .seq-step {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
   text-align: center;
 }

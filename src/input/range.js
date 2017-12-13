@@ -6,9 +6,11 @@ export default function Range (props) {
       <div className='seq-range-label'>
         {props.label}
       </div>
-      <input className='seq-range-slider' type='range'
-        {...props}
-        onChange={props.onChange} />
+      <div>
+        <input className='seq-range-slider' type='range'
+          {...props}
+          onChange={props.onChange} />
+        </div>
       <div className='seq-range-value'>
         {props.value}
       </div>

@@ -1,7 +1,6 @@
 import React from 'react'
-// import pick from 'lodash/pick'
-
-import Input from '../input/input'
+import Slider from 'rc-slider/lib/Slider'
+// import Input from '../input/input'
 
 export default function SequencerStep (props) {
   const defaults = {
@@ -9,16 +8,29 @@ export default function SequencerStep (props) {
     max: 127
   }
 
+  const buttonClassName = props.step.enabled
+                        ? 'seq-button active'
+                        : 'seq-button'
   return (
-    <div className='seq-step'>
-      <Input type='range'
-        value={props.step ? props.step.midiNoteNumber : 12}
-        min={defaults.min}
+    <div style={{ width: '100px' }}>
+      <Slider min={defaults.min}
+        className='seq-range-slider'
         max={defaults.max}
+        value={props.step ? props.step.midiNoteNumber : 12}
         label={props.stepNumber + 1}
+        step={1}
+        defaultValue={48}
+        railStyle={{ backgroundColor: 'red', height: 10 }}
+        trackStyle={{ backgroundColor: 'blue', height: 10 }}
+        handleStyle={{
+          borderColor: 'blue',
+          height: 28,
+          width: 28,
+          backgroundColor: 'black'
+        }}
         onChange={props.handleStepValueChange} />
-      <div className='hi'
-        onClick={() => props.handleStepOnOff(props.stepNumber)}>{props.step.enabled ? 'on' : 'off'}</div>
+      <div className={buttonClassName}
+        onClick={() => props.handleStepOnOffChange(props.stepNumber)}>{props.step.enabled ? 'on' : 'off'}</div>
     </div>
   )
 }
