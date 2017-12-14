@@ -2,6 +2,7 @@ import React from 'react'
 import WAAClock from 'waaclock'
 
 import Input from './input/input'
+import Delay from './delay'
 import SequencerSteps from './sequencer/sequencer_steps'
 
 function makeSteps (number) {
@@ -34,9 +35,9 @@ export default class Sequencer extends React.Component {
       noteLength: 0.25,
       numberOfSteps,
       steps: makeSteps(numberOfSteps),
-      delayTime: 0.000,
-      delayFeedback: 0.0,
-      delayMix: 0,
+      delayTime: 0.5,
+      delayFeedback: 0.3,
+      delayMix: 3,
       masterGain: 1
     }
 
@@ -126,6 +127,8 @@ export default class Sequencer extends React.Component {
   }
 
   handleStepValueChange (stepNumber, value) {
+    console.log(stepNumber);
+    console.log(value);
     const steps = this.state.steps
     steps[stepNumber].midiNoteNumber = value
 
@@ -138,19 +141,17 @@ export default class Sequencer extends React.Component {
     this.setState({ steps })
   }
 
-  handleDelayTimeChange (e) {
-    this.delayNode.delayTime.setValueAtTime(e.target.value, this.audioContext.currentTime)
-    this.setState({ delayTime: e.target.value })
+  handleDelayTimeChange (value) {
+    this.delayNode.delayTime.setValueAtTime(value, this.audioContext.currentTime)
+    this.setState({ delayTime: value })
   }
 
-  handleDelayFeedbackChange (e) {
-    this.feedbackNode.gain.setValueAtTime(e.target.value, this.audioContext.currentTime)
-    this.setState({ delayFeedback: e.target.value })
+  handleDelayFeedbackChange (value) {
+    this.feedbackNode.gain.setValueAtTime(value, this.audioContext.currentTime)
+    this.setState({ delayFeedback: value })
   }
 
-  handleDelayMixChange (e) {
-    const value = e.target.value
-
+  handleDelayMixChange (value) {
     const bypassGain = Math.cos(value * 0.5 * Math.PI)
     const delayGain = Math.cos((1.0 - (value)) * 0.5 * Math.PI)
 
@@ -247,29 +248,13 @@ export default class Sequencer extends React.Component {
             onChange={this.handleMasterGainChange}
             label='Master' />
         </div>
-        <div className='seq-delay-container'>
-          <Input type='range'
-            value={this.state.delayTime}
-            min={0.000}
-            max={4.0}
-            step={0.001}
-            onChange={this.handleDelayTimeChange}
-            label='delay time' />
-          <Input type='range'
-            value={this.state.delayFeedback}
-            min={0.00}
-            max={1.0}
-            step={0.01}
-            onChange={this.handleDelayFeedbackChange}
-            label='delay feedback' />
-          <Input type='range'
-            value={this.state.delayMix}
-            min={0.00}
-            max={1.0}
-            step={0.01}
-            onChange={this.handleDelayMixChange}
-            label='delay mix' />
-        </div>
+        <Delay
+          delayTime={this.state.delayTime}
+          handleDelayTimeChange={this.handleDelayTimeChange}
+          delayFeedback={this.state.delayFeedback}
+          handleDelayFeedbackChange={this.handleDelayFeedbackChange}
+          delayMix={this.state.delayMix}
+          handleDelayMixChange={this.handleDelayMixChange} />
         <SequencerSteps
           numberOfSteps={this.state.numberOfSteps}
           handleStepOnOffChange={this.handleStepOnOffChange}
