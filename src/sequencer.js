@@ -24,10 +24,10 @@ export default class Sequencer extends React.Component {
 
     this.setUpAudioContextAndClock()
 
-    const numberOfSteps = 5
+    const numberOfSteps = 4
 
     this.state = {
-      tempo: 120.0,
+      tempo: 85.0,
       noteResolution: 0,
       isPlaying: false,
       current16thNote: 0,
@@ -120,6 +120,10 @@ export default class Sequencer extends React.Component {
       }
     }
 
+    if (this.state.current16thNote >= value) {
+      this.setState({ current16thNote: 0 })
+    }
+
     this.setState({
       numberOfSteps: value,
       steps
@@ -127,8 +131,6 @@ export default class Sequencer extends React.Component {
   }
 
   handleStepValueChange (stepNumber, value) {
-    console.log(stepNumber);
-    console.log(value);
     const steps = this.state.steps
     steps[stepNumber].midiNoteNumber = value
 
@@ -178,6 +180,7 @@ export default class Sequencer extends React.Component {
         this.nextNote()
       }, this.audioContext.currentTime).tolerance({ early: 0.1, late: 0.5 }).repeat(repeatTime)
     } else {
+      this.setState({ current16thNote: 0 })
       this.event1.clear()
       this.clock.stop()
     }
@@ -195,10 +198,7 @@ export default class Sequencer extends React.Component {
     osc.connect(this.delayNode)
     osc.connect(this.bypassNode)
     osc.type = 'sawtooth'
-    if (this.state.steps[beatNumber] && this.state.steps[beatNumber].enabled) {
-      const noteNumber = this.state.steps[beatNumber].midiNoteNumber
-      osc.frequency.setValueAtTime(440 * Math.pow(2, (noteNumber - 69) / 12), this.audioContext.currentTime)
-    } else {
+    if (!(this.state.steps[beatNumber] && this.state.steps[beatNumber].enabled)) {
       return
     }
 
@@ -206,8 +206,13 @@ export default class Sequencer extends React.Component {
   }
 
   scheduleNote (beatNumber, deadline) {
+    if (beatNumber > this.state.numberOfSteps) {
+      beatNumber = 0
+    }
     let osc = this.makeOsc(beatNumber)
     if (osc) {
+      const noteNumber = this.state.steps[beatNumber].midiNoteNumber
+      osc.frequency.setValueAtTime(440 * Math.pow(2, (noteNumber - 69) / 12), deadline)
       osc.start(deadline)
       osc.stop(deadline + this.state.gateLength)
     }
@@ -233,7 +238,7 @@ export default class Sequencer extends React.Component {
             min={2}
             max={200}
             onChange={this.handleTempoChange}
-            label='tempo' />
+            label='Tempo' />
           <Input type='range'
             value={this.state.numberOfSteps}
             min={1}
